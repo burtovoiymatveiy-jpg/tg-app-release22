@@ -29,6 +29,11 @@
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .btn-secondary {
+            background-color: #31b545; /* Зеленый цвет для связи */
         }
         .card {
             background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
@@ -44,6 +49,8 @@
             font-size: 12px;
             color: #4caf50;
             display: none;
+            margin-top: -5px;
+            margin-bottom: 5px;
         }
     </style>
 </head>
@@ -51,11 +58,13 @@
 
     <div class="header">
         <h2>📩 Обсудить детали работы</h2>
-        <p>Нажмите на кнопку ниже, заполните данные и отправьте мне в ЛС</p>
+        <p>Скопируйте структуру и отправьте в ЛС</p>
     </div>
 
-    <button class="btn" onclick="copyStructure()">📝 Структура сообщения</button>
-    <div id="status" class="status">Текст скопирован! Вставьте его в чат.</div>
+    <button class="btn" onclick="copyStructure()">📝 1. Копировать структуру</button>
+    <div id="status" class="status">Текст скопирован!</div>
+
+    <button class="btn btn-secondary" onclick="contactOwner()">💬 2. Написать @awarem</button>
 
     <div id="content" class="card">
 1. Вид работы:
@@ -71,15 +80,10 @@
 6. ФИО клиента и ФИО препода:
     </div>
 
-    <div style="text-align: center; margin-top: 20px;">
-        <a href="https://t.me/txtandpptx" style="color: var(--tg-theme-link-color); text-decoration: none;">Перейти в канал @txtandpptx</a>
-    </div>
-
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Главная кнопка внизу экрана для быстрой связи
         tg.MainButton.setText("ПОДПИСАТЬСЯ НА КАНАЛ");
         tg.MainButton.show();
         tg.MainButton.onClick(() => {
@@ -94,6 +98,11 @@
                 tg.HapticFeedback.notificationOccurred('success');
                 setTimeout(() => { status.style.display = 'none'; }, 2000);
             });
+        }
+
+        function contactOwner() {
+            tg.HapticFeedback.impactOccurred('medium');
+            tg.openTelegramLink("https://t.me/awarem");
         }
     </script>
 </body>
