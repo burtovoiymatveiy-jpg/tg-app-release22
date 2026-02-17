@@ -6,109 +6,163 @@
     <title>Заказ работы</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        :root {
+            --bg-color: var(--tg-theme-bg-color, #ffffff);
+            --text-color: var(--tg-theme-text-color, #222222);
+            --hint-color: var(--tg-theme-hint-color, #999999);
+            --link-color: var(--tg-theme-link-color, #2481cc);
+            --button-color: var(--tg-theme-button-color, #2481cc);
+            --button-text: var(--tg-theme-button-text-color, #ffffff);
+            --secondary-bg: var(--tg-theme-secondary-bg-color, #f0f2f5);
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #222222);
-            margin: 0; padding: 20px; display: flex; flex-direction: column; gap: 12px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            animation: fadeIn 0.5s ease-in;
         }
-        .header { text-align: center; margin-bottom: 5px; }
-        .warning-box {
-            background-color: rgba(255, 165, 0, 0.1); border: 1px solid #ffa500;
-            padding: 12px; border-radius: 12px; text-align: center; font-size: 13px; font-weight: bold;
-        }
-        select {
-            width: 100%; border-radius: 12px; border: 1px solid #ccc; padding: 12px;
-            background: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); font-size: 16px;
-        }
-        .btn {
-            padding: 18px; border: none; border-radius: 15px; font-size: 16px;
-            font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s;
-        }
-        .btn-primary { background-color: var(--tg-theme-button-color, #2481cc); color: #fff; }
-        .btn-attach { background-color: #f39c12; color: #fff; margin-top: 5px; }
-        .btn-secondary { background-color: #31b545; color: #fff; margin-top: 5px; }
-        .btn-outline { background-color: transparent; border: 1px solid #6c757d; color: #6c757d; font-size: 14px; padding: 10px; margin-top: 5px; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .header { text-align: center; padding: 10px 0; }
+        .header h2 { margin: 0; font-size: 22px; background: linear-gradient(45deg, var(--link-color), #8e44ad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
         .card {
-            background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            padding: 15px; border-radius: 15px; font-size: 14px;
-            line-height: 1.5; white-space: pre-line; border: 1px dashed #ccc;
+            background: var(--secondary-bg);
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        .status { text-align: center; font-size: 12px; color: #4caf50; display: none; }
-        .step-label { font-size: 12px; color: #888; text-transform: uppercase; margin-left: 5px; }
+
+        /* Urgent Switch */
+        .urgent-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            border-radius: 15px;
+            padding: 12px 16px;
+            transition: 0.3s;
+        }
+        .urgent-active { background: rgba(231, 76, 60, 0.2); border-color: #e74c3c; box-shadow: 0 0 10px rgba(231,76,60,0.2); }
+
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #e74c3c; }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        select {
+            width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--hint-color);
+            background: var(--bg-color); color: var(--text-color); font-size: 16px; appearance: none;
+        }
+
+        .btn {
+            padding: 16px; border: none; border-radius: 16px; font-size: 16px; font-weight: 700;
+            cursor: pointer; width: 100%; transition: transform 0.1s, opacity 0.2s;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary { background: var(--button-color); color: var(--button-text); }
+        .btn-secondary { background: #31b545; color: #fff; }
+        .btn-outline { background: transparent; color: var(--link-color); border: 1px solid var(--link-color); padding: 10px; font-size: 14px; }
+
+        .status-msg { text-align: center; font-size: 12px; color: #31b545; display: none; margin-top: -10px; }
+        
+        #preview-text { font-size: 13px; color: var(--hint-color); border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="header"><h2>📩 Оформить заказ</h2></div>
-
-    <div class="warning-box">⚠️ Подписка на @txtandpptx обязательна!</div>
-
-    <div>
-        <label class="step-label">Вид работы:</label>
-        <select id="work-type" onchange="updateStructure()">
-            <option value="Реферат">Реферат</option>
-            <option value="Презентация">Презентация</option>
-            <option value="Доклад">Доклад</option>
-            <option value="Проект">Проект</option>
-            <option value="Переписать лекцию">Переписать лекцию</option>
-        </select>
+    <div class="header">
+        <h2>✍️ Оформить заказ</h2>
     </div>
 
-    <button class="btn btn-primary" onclick="copyStructure()">📝 1. Копировать данные</button>
-    <div id="status" class="status">Текст скопирован!</div>
+    <div class="urgent-container" id="urgent-box">
+        <span style="font-weight: bold;">🚨 Срочный заказ</span>
+        <label class="switch">
+            <input type="checkbox" id="urgent-toggle" onchange="updateStructure()">
+            <span class="slider"></span>
+        </label>
+    </div>
 
-    <button class="btn btn-attach" onclick="contactOwner()">📎 2. Прикрепить файлы (ТЗ)</button>
+    <div class="card">
+        <label style="font-size: 12px; color: var(--hint-color); display: block; margin-bottom: 5px;">ВИД РАБОТЫ</label>
+        <select id="work-type" onchange="updateStructure()">
+            <option value="Реферат">📝 Реферат</option>
+            <option value="Презентация">📊 Презентация</option>
+            <option value="Доклад">🎤 Доклад</option>
+            <option value="Проект">💡 Проект</option>
+            <option value="Переписать лекцию">🖋 Переписать лекцию</option>
+        </select>
+        
+        <div id="preview-text"></div>
+    </div>
 
-    <button class="btn btn-secondary" onclick="contactOwner()">💬 3. Написать @awarem</button>
+    <button class="btn btn-primary" onclick="copyStructure()">Копировать структуру</button>
+    <div id="status" class="status-msg">Текст скопирован!</div>
 
-    <div id="content" class="card"></div>
+    <div style="display: flex; gap: 10px;">
+        <button class="btn btn-secondary" style="flex: 2;" onclick="contactOwner('attach')">📎 Файлы</button>
+        <button class="btn btn-secondary" style="flex: 3;" onclick="contactOwner('chat')">💬 Написать ЛС</button>
+    </div>
 
-    <button class="btn btn-outline" onclick="tg.openTelegramLink('https://t.me/txtandpptx')">⭐️ Посмотреть отзывы</button>
-    
-    <button class="btn btn-outline" onclick="shareApp()">🔗 Рекомендовать другу</button>
+    <button class="btn btn-outline" onclick="tg.openTelegramLink('https://t.me/OTZblBblawarem')">⭐️ Читать отзывы</button>
 
     <script>
         const tg = window.Telegram.WebApp;
+        tg.ready();
         tg.expand();
-
-        tg.MainButton.setText("КАНАЛ @TXTANDPPTX");
-        tg.MainButton.show();
-        tg.MainButton.onClick(() => tg.openTelegramLink("https://t.me/txtandpptx"));
 
         function updateStructure() {
             const type = document.getElementById('work-type').value;
+            const isUrgent = document.getElementById('urgent-toggle').checked;
+            const urgentBox = document.getElementById('urgent-box');
+            
             let unit = "страниц";
-            if (type === "Презентация") unit = "слайдов";
-            if (type === "Переписать лекцию") unit = "листов/фото";
+            if (type.includes("Презентация")) unit = "слайдов";
+            if (type.includes("Переписать")) unit = "листов/фото";
 
-            const structure = `1. Вид работы: ${type}
+            if (isUrgent) {
+                urgentBox.classList.add('urgent-active');
+            } else {
+                urgentBox.classList.remove('urgent-active');
+            }
+
+            const structure = `${isUrgent ? '🚨 СРОЧНЫЙ ЗАКАЗ 🚨\n' : ''}
+1. Вид: ${type}
 2. Количество ${unit}: 
-3. Срок выполнения: 
-4. Желаемая сумма оплаты: 
-5. Наличие плана/титульника: 
+3. Срок: 
+4. Оплата: 
+5. План/ТЗ: 
 6. ФИО клиента и препода: `;
-            document.getElementById('content').innerText = structure;
+
+            document.getElementById('preview-text').innerText = structure;
         }
 
         function copyStructure() {
-            const text = document.getElementById('content').innerText;
+            const text = document.getElementById('preview-text').innerText;
             navigator.clipboard.writeText(text).then(() => {
                 document.getElementById('status').style.display = 'block';
                 tg.HapticFeedback.notificationOccurred('success');
-                setTimeout(() => { document.getElementById('status').style.display = 'none'; }, 2000);
+                setTimeout(() => document.getElementById('status').style.display = 'none', 2000);
             });
         }
 
-        function contactOwner() {
+        function contactOwner(type) {
             tg.HapticFeedback.impactOccurred('medium');
             tg.openTelegramLink("https://t.me/awarem");
         }
 
-        function shareApp() {
-            tg.openTelegramLink("https://t.me/share/url?url=https://t.me/txtmatbot/app&text=Закажи работу тут!");
-        }
-
+        // Инициализация
         updateStructure();
     </script>
 </body>
