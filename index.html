@@ -14,14 +14,30 @@
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
         }
-        .header {
+        .header { text-align: center; margin-bottom: 5px; }
+        .warning-box {
+            background-color: rgba(255, 165, 0, 0.1);
+            border: 1px solid #ffa500;
+            padding: 12px;
+            border-radius: 12px;
             text-align: center;
-            margin-bottom: 10px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        label { font-size: 14px; font-weight: bold; margin-left: 5px; }
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid #ccc;
+            background: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+            font-size: 16px;
         }
         .btn {
-            padding: 18px;
+            padding: 16px;
             background-color: var(--tg-theme-button-color, #2481cc);
             color: var(--tg-theme-button-text-color, #ffffff);
             border: none;
@@ -30,73 +46,76 @@
             font-weight: bold;
             cursor: pointer;
             width: 100%;
-            margin-bottom: 10px;
         }
-        .btn-secondary {
-            background-color: #31b545; /* Зеленый цвет для связи */
-        }
+        .btn-secondary { background-color: #31b545; }
+        .btn-share { background-color: #6c757d; margin-top: 5px; font-size: 14px; padding: 10px; }
         .card {
             background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            padding: 20px;
+            padding: 15px;
             border-radius: 15px;
             font-size: 14px;
-            line-height: 1.6;
+            line-height: 1.5;
             white-space: pre-line;
             border: 1px dashed #ccc;
         }
-        .status {
-            text-align: center;
-            font-size: 12px;
-            color: #4caf50;
-            display: none;
-            margin-top: -5px;
-            margin-bottom: 5px;
-        }
+        .status { text-align: center; font-size: 12px; color: #4caf50; display: none; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h2>📩 Обсудить детали работы</h2>
-        <p>Скопируйте структуру и отправьте в ЛС</p>
+        <h2>📩 Оформить заказ</h2>
+    </div>
+
+    <div class="warning-box">
+        ⚠️ Подписка на @txtandpptx обязательна!
+    </div>
+
+    <div>
+        <label for="work-type">Выберите вид работы:</label>
+        <select id="work-type" onchange="updateStructure()">
+            <option value="Реферат">Реферат</option>
+            <option value="Презентация">Презентация</option>
+            <option value="Доклад">Доклад</option>
+            <option value="Проект">Проект</option>
+            <option value="Переписать лекцию (в Word)">Переписать лекцию</option>
+        </select>
     </div>
 
     <button class="btn" onclick="copyStructure()">📝 1. Копировать структуру</button>
-    <div id="status" class="status">Текст скопирован!</div>
+    <div id="status" class="status">Готово! Теперь отправьте в ЛС.</div>
 
     <button class="btn btn-secondary" onclick="contactOwner()">💬 2. Написать @awarem</button>
+    
+    <button class="btn btn-share" onclick="shareApp()">🔗 Порекомендовать друзьям</button>
 
-    <div id="content" class="card">
-1. Вид работы:
-• Реферат
-• Презентация
-• Доклад
-• Проект
-• Переписать лекцию из тетради в Word
-2. Количество страниц/слайдов:
-3. Срок выполнения:
-4. Желаемая сумма оплаты:
-5. Наличие плана/титульника (файлом или скриншотом):
-6. ФИО клиента и ФИО препода:
-    </div>
+    <div id="content" class="card"></div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        tg.MainButton.setText("ПОДПИСАТЬСЯ НА КАНАЛ");
+        tg.MainButton.setText("ПЕРЕЙТИ В КАНАЛ");
         tg.MainButton.show();
-        tg.MainButton.onClick(() => {
-            tg.openTelegramLink("https://t.me/txtandpptx");
-        });
+        tg.MainButton.onClick(() => tg.openTelegramLink("https://t.me/txtandpptx"));
+
+        function updateStructure() {
+            const type = document.getElementById('work-type').value;
+            const structure = `1. Вид работы: ${type}
+2. Количество страниц/слайдов: 
+3. Срок выполнения: 
+4. Желаемая сумма оплаты: 
+5. Наличие плана/титульника: 
+6. ФИО клиента и препода: `;
+            document.getElementById('content').innerText = structure;
+        }
 
         function copyStructure() {
             const text = document.getElementById('content').innerText;
             navigator.clipboard.writeText(text).then(() => {
-                const status = document.getElementById('status');
-                status.style.display = 'block';
+                document.getElementById('status').style.display = 'block';
                 tg.HapticFeedback.notificationOccurred('success');
-                setTimeout(() => { status.style.display = 'none'; }, 2000);
+                setTimeout(() => { document.getElementById('status').style.display = 'none'; }, 2000);
             });
         }
 
@@ -104,6 +123,13 @@
             tg.HapticFeedback.impactOccurred('medium');
             tg.openTelegramLink("https://t.me/awarem");
         }
+
+        function shareApp() {
+            tg.openTelegramLink("https://t.me/share/url?url=https://t.me/txtmatbot/app&text=Посмотри, тут можно заказать презентацию или реферат!");
+        }
+
+        // Инициализация при загрузке
+        updateStructure();
     </script>
 </body>
 </html>
